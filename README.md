@@ -1,6 +1,6 @@
 # Automatic Transcription via DL
 
-Transcript Japanese instruments(Shinobue and Japanese drum) automaticlly with deep learning.
+Transcript Japanese instruments(Japanese flute and Japanese drum) automatically with deep learning.
 
 ## DEMO
 
