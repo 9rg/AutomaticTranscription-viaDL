@@ -15,7 +15,6 @@ def main():
     n_epochs = config["n_epochs"]
     class_weight = config["class_weight"]
     csv_path = config["csv_path"]
-    print("csv_path={}" .format(csv_path))
 
     x_train, x_val = make_datasets(csv_path, input_timesteps, 0)
     t_train, t_val = make_datasets(csv_path, input_timesteps, 1)
