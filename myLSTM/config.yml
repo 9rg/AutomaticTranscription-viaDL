@@ -4,6 +4,8 @@ hidden_states: 32
 batch_size: 1
 n_epochs: 100
 csv_path: '../../products/output/csv/ohkawa_interval_labels.csv'
+model_path: '../../products/saved_models/LSTM_ohkawa_gen.h5'
+output_path: '../../products/output/csv/ohkawa_predicted.csv'
 class_weight: 
   0: 1.30
   1: 1.23

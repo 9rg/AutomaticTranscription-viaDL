@@ -53,3 +53,18 @@ def train(model, x_train, x_val, t_train, t_val, class_weight, n_epochs):
         history = model.fit(x_train, t_train, epochs=1, verbose=2, batch_size=1, validation_data=(x_val, t_val), callbacks=[es], shuffle=False, class_weight=class_weight)
         model.reset_states()
     print(model.summary())
+
+def prediction(model, input_timesteps, batch_size, x_train):
+    gen = [None for i in range(input_timesteps)]
+    z = x_train[:1]
+    for i in tqdm(range(len(x_train)-input_timesteps)):
+        preds = model.predict(z[-1:], batch_size=batch_size)[0].argmax()
+        z = np.append(z, preds)[1:]
+        z = z.reshape(-1, input_timesteps, 1)
+        gen.append(preds)
+    return gen
+
+def save_file(y, output_path):
+    with open(output_path, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(y)
