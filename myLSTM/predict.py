@@ -15,9 +15,9 @@ def main():
     batch_size = config["batch_size"]
     n_epochs = config["n_epochs"]
     class_weight = config["class_weight"]
-    csv_path = config["csv_path"]
-    model_path = config["model_path"]
-    output_path = config["output_path"]
+    csv_path =  args.input_file
+    model_path = args.model_file
+    output_path = args.output_file
 
     x_train, x_val = make_datasets(csv_path, input_timesteps, 0)
     t_train, t_val = make_datasets(csv_path, input_timesteps, 1)
@@ -31,9 +31,20 @@ def main():
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
-        "--config_file", "-c", default="./config.yml",
-        help="configuration file")
+        '--config_file', '-c', default='config.yml',
+        help="configuration file.")
+    parser.add_argument(
+        '--input_file', '-i', default='../../products/output/csv/ohkawa_interval_labels.csv',
+        help='path of input csv file.')
+    parser.add_argument(
+        '--model_file', '-m', default='../../products/saved_models/LSTM_ohkawa_gen.h5',
+        helt='path of LSTM model file.')
+    parser.add_argument(
+        '__output_file', '-o', default='../../products/output/csv/ohkawa_predicted.csv',
+        help='path of output csv file.')
     return parser.parse_args()
+
+# -m "Update usage of parser"
 
 if __name__ == '__main__':
     main() 
