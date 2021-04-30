@@ -44,7 +44,5 @@ def parse_args():
         help='path of output csv file.')
     return parser.parse_args()
 
-# -m "Update usage of parser"
-
 if __name__ == '__main__':
     main() 
