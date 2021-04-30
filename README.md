@@ -10,14 +10,17 @@ Transcript Japanese instruments(Japanese flute and Japanese drum) automatically 
 ## Features
 
 The first attempt of using deep learning to unsteady Japanese festival music.
-
 This time, the program handle "Awaodori festival music" as a target.
 
 ## Usage
 
-'''
-python ~~
-'''
+```
+# train model
+python train.py -c config.yml
+
+# generate original music data in csv format
+python predict -c config.yml
+```
 
 ## Note
 
