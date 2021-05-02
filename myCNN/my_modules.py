@@ -1,10 +1,13 @@
 import numpy as np
 import csv
 import librosa
+import tensorflow as tf
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Flatten, Activation
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization, TimeDistributed
+from tensorflow.keras import backend as K
 
 def load_file(audio_path, csv_path):
     y1, sr = librosa.load(audio_path)
@@ -43,22 +46,29 @@ def make_datasets(audio_path, csv_path, seq_length, flag):
     if flag == 0: return x_train, x_val
     else: return t_train, t_val
 
-def build_model(hidden_states, input_timesteps, batch_size, t_train):
+def build_model(seq_length):
     model = Sequential()
-    model.add(LSTM(hidden_states, stateful=True, input_shape=(input_timesteps, 1), batch_size=batch_size))
-    model.add(Dense(t_train.shape[1], activation='softmax'))
+    model.add(TimeDistributed(Conv2D(10, kernel_size=(3, 7), activation='relu'), input_shape=(seq_length, 80, 15, 1)))
+    model.add(TimeDistributed(MaxPooling2D(pool_size=(3, 1))))
+    model.add(TimeDistributed(Conv2D(20, kernel_size=(3, 3), activation='relu')))
+    model.add(TimeDistributed(BatchNormalization()))
+    model.add(TimeDistributed(MaxPooling2D(pool_size=(3, 1))))
+    model.add(Flatten())
+    model.add(Dense(256, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dense(1, activation='sigmoid'))
     return model
 
-def optiFunc():
-    optimizer = optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, amsgrad=True)
-    return optimizer
+def precision(y_true, y_pred):
+    pred_labels = tf.round(y_pred)
+    true_pred = K.sum(y_true * pred_labels)
+    total_pred = K.sum(y_pred)
+    return true_pred / (total_pred + K.epsilon())
 
-def train(model, x_train, x_val, t_train, t_val, class_weight, n_epochs):
-    es = EarlyStopping(monitor='val_loss', patience=10, verbose=1)
-    for i in tqdm(range(n_epochs)):
-        history = model.fit(x_train, t_train, epochs=1, verbose=2, batch_size=1, validation_data=(x_val, t_val), callbacks=[es], shuffle=False, class_weight=class_weight)
-        model.reset_states()
-    print(model.summary())
+def recall(y_true, y_pred):
+    true_positives = K.sum(y_true * y_pred)
+    total_positives = K.sum(y_true)
+    return true_positives / (total_positives + K.epsilon())
 
 def prediction(model, input_timesteps, batch_size, x_train):
     gen = [None for i in range(input_timesteps)]
