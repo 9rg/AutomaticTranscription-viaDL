@@ -1,39 +1,45 @@
 import numpy as np
 import csv
+import librosa
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
-from tensorflow.keras import optimizers
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, LSTM
-from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.layers import Dense
 
-def make_datasets(file_path, input_timesteps, flag):
-    with open(file_path) as f:
+def load_file(audio_path, csv_path):
+    y1, sr = librosa.load(audio_path)
+    y1_stft = np.abs(librosa.stft(y1))** 2
+    y1_logstft = librosa.power_to_db(y1_stft)
+    y1_mel = librosa.feature.melspectrogram(S=y1_logstft, n_mels=80)
+
+    with open(csv_path) as f:
         reader = csv.reader(f, quoting=csv.QUOTE_NONNUMERIC)
-        y = [row for row in reader]
-    y = np.array(y, dtype=np.float)
-    y = y.reshape(-1,)
-    length_of_sequences = len(y)
+        y2 = [row for row in reader]
+    y2 = np.array(y2, dtype=np.float)
+    y2 = y2.reshape(-1,)
+    return y1_mel, y2
 
-    y_onehot = np.zeros((length_of_sequences, 4))
-    for i in tqdm(range(length_of_sequences)):
-        if y[i] == 0:
-            y_onehot[i, 0] = 1
-        if y[i] == 1:
-            y_onehot[i, 1] = 1
-        if y[i] == 2:
-            y_onehot[i, 2] = 1
-        if y[i] == 3:
-            y_onehot[i, 3] = 1
-
+def make_datasets(audio_path, csv_path, seq_length, flag):
+    y1, y2 = load_file(audio_path, csv_path)
     x = []
     t = []
-    for i in tqdm(range(length_of_sequences - input_timesteps)):
-        x.append(y[i:i + input_timesteps])
-        t.append(y_onehot[i + input_timesteps])
-    x = np.array(x).reshape(-1, input_timesteps, 1)
+    for i in tqdm(range(y1.shape[1] - 15)):
+        x.append(y1[:, (i + 1):(i + 16)] - y1[:, i:(i + 15)])
+        t.append(y2[i + 7])
+    x = np.array(x)
     t = np.array(t)
-    x_train, x_val, t_train, t_val = train_test_split(x, t, test_size=0.2, shuffle=False)
+    x_seq = []
+    t_seq = []
+    for i in tqdm(range(x.shape[0] - 5)):
+        x_seq.append(x[i:i + seq_length])
+        t_seq.append(t[i + seq_length - 1])
+    x_seq = np.array(x_seq)
+    t_seq = np.array(t_seq)
+    x_seq = np.array(x_seq).reshape(-1, seq_length, 80, 15, 1)
+    t_seq = np.array(t_seq).reshape(t_seq.shape[0], 1)
+    x_seq = x_seq.astype('float32')
+    x_seq /= np.amax(np.abs(x))
+    x_train, x_val, t_train, t_val = train_test_split(x_seq, t_seq, test_size=0.2, shuffle=False)
     if flag == 0: return x_train, x_val
     else: return t_train, t_val
 
