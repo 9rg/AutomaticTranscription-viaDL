@@ -3,5 +3,5 @@ class_weight:
   0: 0.50
   1: 107.96
 batch_size: 32
-n_epochs: 200
+n_epochs: 200 
 seq_length: 6
